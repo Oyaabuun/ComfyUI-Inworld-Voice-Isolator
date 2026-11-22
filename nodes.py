@@ -14,11 +14,6 @@ import comfy.utils
 # Optimize selective_scan frame block size to reduce peak VRAM from 7.2 GB to ~1.5-2.4 GB and accelerate scan
 scan.BLOCK = 4
 
-# Register models/inworld as a recognized model folder
-INWORLD_MODELS_DIR = os.path.join(folder_paths.models_dir, "inworld")
-os.makedirs(INWORLD_MODELS_DIR, exist_ok=True)
-folder_paths.add_model_folder_path("inworld", INWORLD_MODELS_DIR)
-
 _CACHED_ISOLATORS = {}
 
 
@@ -49,21 +44,41 @@ class ConsoleProgressBar:
                 sys.stdout.flush()
 
 
+def _get_inworld_model_list():
+    found = []
+    # Search in diffusion_models folder (e.g. models/diffusion_models/inworld/ or models/diffusion_models/)
+    for f in folder_paths.get_filename_list("diffusion_models"):
+        fl = f.lower()
+        if "inworld" in fl or "denoiser" in fl:
+            found.append(f)
+    # Search in audio_encoders folder if present
+    if "audio_encoders" in folder_paths.folder_names_and_paths:
+        for f in folder_paths.get_filename_list("audio_encoders"):
+            fl = f.lower()
+            if "inworld" in fl or "denoiser" in fl:
+                found.append(f)
+    return ["auto (download from HF if missing)"] + sorted(list(set(found)))
+
+
 def _resolve_model_and_mode(model_choice: str, mode_str: str):
     default_mode = "streaming" if "streaming" in mode_str else "offline"
     if model_choice == "auto (download from HF if missing)":
         return "inworld/voice-isolator", default_mode
 
-    model_target = folder_paths.get_full_path("inworld", model_choice)
-    if not model_target or not os.path.exists(model_target):
-        raise FileNotFoundError(f"Model file not found in models/inworld/: {model_choice}")
+    # Check diffusion_models first, then audio_encoders
+    full_path = folder_paths.get_full_path("diffusion_models", model_choice)
+    if not full_path and "audio_encoders" in folder_paths.folder_names_and_paths:
+        full_path = folder_paths.get_full_path("audio_encoders", model_choice)
+
+    if not full_path or not os.path.exists(full_path):
+        raise FileNotFoundError(f"Model file '{model_choice}' not found in models/diffusion_models/ or models/audio_encoders/!")
 
     # Inspect checkpoint metadata to auto-match streaming/offline mode if needed
     mode = default_mode
-    if model_target.endswith(".safetensors"):
+    if full_path.endswith(".safetensors"):
         try:
             import safetensors.torch
-            with safetensors.safe_open(model_target, framework="pt") as f:
+            with safetensors.safe_open(full_path, framework="pt") as f:
                 meta = f.metadata() or {}
                 if "config" in meta:
                     cfg = json.loads(meta["config"])
@@ -76,7 +91,7 @@ def _resolve_model_and_mode(model_choice: str, mode_str: str):
     elif "realtime" in model_choice.lower() or "streaming" in model_choice.lower():
         mode = "streaming"
 
-    return model_target, mode
+    return full_path, mode
 
 
 def _get_isolator(model_target: str, mode: str, device_choice: str):
@@ -228,7 +243,7 @@ def _isolate_mono_streaming(
 class InworldVoiceIsolator:
     @classmethod
     def INPUT_TYPES(cls):
-        model_files = ["auto (download from HF if missing)"] + sorted(folder_paths.get_filename_list("inworld"))
+        model_files = _get_inworld_model_list()
         return {
             "required": {
                 "audio": ("AUDIO",),
