@@ -1,0 +1,14 @@
+[project]
+name = "comfyui-inworld-voice-isolator"
+description = "Inworld Voice Isolator for ComfyUI: 48 kHz studio-grade speech isolation & background noise extraction with memory-efficient long-audio streaming."
+version = "1.0.0"
+license = { text = "Apache-2.0" }
+dependencies = ["inworld-voice-isolation>=0.1.2"]
+
+[project.urls]
+Repository = "https://github.com/Oyaabuun/ComfyUI-Inworld-Voice-Isolator"
+
+[tool.comfy]
+PublisherId = "oyaabuun"
+DisplayName = "ComfyUI-Inworld-Voice-Isolator"
+Icon = ""

@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.flac
+*.wav
+*.mp3
+*.ogg
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
