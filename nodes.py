@@ -1,8 +1,11 @@
+import json
 import math
+import os
 import torch
 from inworld import voice_isolation
 import inworld.voice_isolation.scan as scan
 from inworld.voice_isolation.model import window_samples
+import folder_paths
 import comfy.audio
 import comfy.model_management
 import comfy.utils
@@ -10,20 +13,54 @@ import comfy.utils
 # Optimize selective_scan frame block size to reduce peak VRAM from 7.2 GB to ~1.5-2.4 GB and accelerate scan
 scan.BLOCK = 4
 
+# Register models/inworld as a recognized model folder
+INWORLD_MODELS_DIR = os.path.join(folder_paths.models_dir, "inworld")
+os.makedirs(INWORLD_MODELS_DIR, exist_ok=True)
+folder_paths.add_model_folder_path("inworld", INWORLD_MODELS_DIR)
+
 _CACHED_ISOLATORS = {}
 
 
-def _get_isolator(mode_str: str, device_choice: str):
+def _resolve_model_and_mode(model_choice: str, mode_str: str):
+    default_mode = "streaming" if "streaming" in mode_str else "offline"
+    if model_choice == "auto (download from HF if missing)":
+        return "inworld/voice-isolator", default_mode
+
+    model_target = folder_paths.get_full_path("inworld", model_choice)
+    if not model_target or not os.path.exists(model_target):
+        raise FileNotFoundError(f"Model file not found in models/inworld/: {model_choice}")
+
+    # Inspect checkpoint metadata to auto-match streaming/offline mode if needed
+    mode = default_mode
+    if model_target.endswith(".safetensors"):
+        try:
+            import safetensors.torch
+            with safetensors.safe_open(model_target, framework="pt") as f:
+                meta = f.metadata() or {}
+                if "config" in meta:
+                    cfg = json.loads(meta["config"])
+                    if cfg.get("causal") is True:
+                        mode = "streaming"
+                    elif cfg.get("causal") is False:
+                        mode = "offline"
+        except Exception:
+            pass
+    elif "realtime" in model_choice.lower() or "streaming" in model_choice.lower():
+        mode = "streaming"
+
+    return model_target, mode
+
+
+def _get_isolator(model_target: str, mode: str, device_choice: str):
     if device_choice == "auto":
         device = "cuda" if torch.cuda.is_available() else "cpu"
     else:
         device = device_choice
 
-    mode = "streaming" if "streaming" in mode_str else "offline"
-    key = (mode, device)
+    key = (model_target, mode, device)
     if key not in _CACHED_ISOLATORS:
         _CACHED_ISOLATORS[key] = voice_isolation.VoiceIsolator(
-            "inworld/voice-isolator",
+            model_target,
             mode=mode,
             device=device,
         )
@@ -163,11 +200,13 @@ def _isolate_mono_streaming(
 class InworldVoiceIsolator:
     @classmethod
     def INPUT_TYPES(cls):
+        model_files = ["auto (download from HF if missing)"] + sorted(folder_paths.get_filename_list("inworld"))
         return {
             "required": {
                 "audio": ("AUDIO",),
             },
             "optional": {
+                "model_name": (model_files, {"default": "auto (download from HF if missing)"}),
                 "mode": (["offline (high quality)", "streaming (realtime)"], {"default": "offline (high quality)"}),
                 "device": (["auto", "cuda", "cpu"], {"default": "auto"}),
                 "channel_handling": (["mono", "stereo (dual-channel)", "centered stereo"], {"default": "mono"}),
@@ -185,6 +224,7 @@ class InworldVoiceIsolator:
     def isolate_voice(
         self,
         audio: dict,
+        model_name: str = "auto (download from HF if missing)",
         mode: str = "offline (high quality)",
         device: str = "auto",
         channel_handling: str = "mono",
@@ -199,9 +239,10 @@ class InworldVoiceIsolator:
             waveform = waveform.unsqueeze(0)
 
         batch_size, num_channels, num_samples = waveform.shape
-        isolator = _get_isolator(mode, device)
+        model_target, resolved_mode = _resolve_model_and_mode(model_name, mode)
+        isolator = _get_isolator(model_target, resolved_mode, device)
         target_sr = 48000 if output_sample_rate == "48000" else sample_rate
-        is_offline = "offline" in mode
+        is_offline = (resolved_mode == "offline")
 
         # Plan progress bar steps
         samples_48k = int(round(num_samples * 48000 / sample_rate))

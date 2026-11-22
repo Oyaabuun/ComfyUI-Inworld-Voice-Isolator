@@ -1,1 +1,535 @@
-{"id":"81a2f1c8-2f99-4bfb-a1a6-b158115e0413","revision":0,"last_node_id":7,"last_link_id":6,"nodes":[{"id":1,"type":"MarkdownNote","pos":[40,60],"size":[420,480],"flags":{},"order":0,"mode":0,"inputs":[],"outputs":[],"properties":{"ue_properties":{"widget_ue_connectable":{},"version":"7.8","input_ue_unconnectable":{}}},"widgets_values":["# Inworld Voice Isolator v1\\n\\nOpen-license (Apache-2.0) 48 kHz voice isolation for noisy recordings and speech pipelines.\\n\\n**Models**:\\n- **offline (high quality)**: 64M parameters, processes in 8 s chunks with 2 s overlap for pristine quality.\\n- **streaming (realtime)**: 58M parameters, causal with 20 ms look-ahead.\\n\\n**Outputs**:\\n- **voice**: Isolated foreground speaker.\\n- **background**: Extracted background noise / music / room reverb (input minus voice).\\n\\n**Options**:\\n- **channel_handling**: Mono downmix, dual-channel stereo (isolates L & R separately), or centered stereo.\\n- **output_sample_rate**: Keep original or 48 kHz native."],"widgets_values_named":{"text":"# Inworld Voice Isolator v1\\n\\nOpen-license (Apache-2.0) 48 kHz voice isolation for noisy recordings and speech pipelines.\\n\\n**Models**:\\n- **offline (high quality)**: 64M parameters, processes in 8 s chunks with 2 s overlap for pristine quality.\\n- **streaming (realtime)**: 58M parameters, causal with 20 ms look-ahead.\\n\\n**Outputs**:\\n- **voice**: Isolated foreground speaker.\\n- **background**: Extracted background noise / music / room reverb (input minus voice).\\n\\n**Options**:\\n- **channel_handling**: Mono downmix, dual-channel stereo (isolates L & R separately), or centered stereo.\\n- **output_sample_rate**: Keep original or 48 kHz native."},"color":"#232c3d","bgcolor":"#151b26"},{"id":2,"type":"LoadAudio","pos":[500,60],"size":[320,160],"flags":{},"order":1,"mode":0,"inputs":[{"localized_name":"audio","name":"audio","type":"COMBO","widget":{"name":"audio"},"link":null},{"localized_name":"audioUI","name":"audioUI","type":"AUDIO_UI","widget":{"name":"audioUI"},"link":null},{"localized_name":"choose file to upload","name":"upload","type":"AUDIOUPLOAD","widget":{"name":"upload"},"link":null}],"outputs":[{"localized_name":"AUDIO","name":"AUDIO","type":"AUDIO","slot_index":0,"links":[1]}],"properties":{"cnr_id":"comfy-core","ver":"0.46.0","Node name for S&R":"LoadAudio","ue_properties":{"widget_ue_connectable":{},"version":"7.8","input_ue_unconnectable":{}}},"widgets_values":["Recording1431.ogg",""],"widgets_values_named":{"audio":"Recording1431.ogg","upload":""}},{"id":3,"type":"InworldVoiceIsolator","pos":[870,60],"size":[360,260],"flags":{},"order":2,"mode":0,"inputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","link":1},{"localized_name":"mode","name":"mode","shape":7,"type":"COMBO","widget":{"name":"mode"},"link":null},{"localized_name":"device","name":"device","shape":7,"type":"COMBO","widget":{"name":"device"},"link":null},{"localized_name":"channel_handling","name":"channel_handling","shape":7,"type":"COMBO","widget":{"name":"channel_handling"},"link":null},{"localized_name":"chunk_seconds","name":"chunk_seconds","shape":7,"type":"FLOAT","widget":{"name":"chunk_seconds"},"link":null},{"localized_name":"overlap_seconds","name":"overlap_seconds","shape":7,"type":"FLOAT","widget":{"name":"overlap_seconds"},"link":null},{"localized_name":"output_sample_rate","name":"output_sample_rate","shape":7,"type":"COMBO","widget":{"name":"output_sample_rate"},"link":null}],"outputs":[{"localized_name":"voice","name":"voice","type":"AUDIO","slot_index":0,"links":[2,3]},{"localized_name":"background","name":"background","type":"AUDIO","slot_index":1,"links":[4,5]}],"properties":{"cnr_id":"comfyui-workflow-encrypt","ver":"1.0.0","Node name for S&R":"InworldVoiceIsolator","ue_properties":{"widget_ue_connectable":{},"version":"7.8","input_ue_unconnectable":{}}},"widgets_values":["offline (high quality)","cuda","mono",8,2,"original"],"widgets_values_named":{"mode":"offline (high quality)","device":"cuda","channel_handling":"mono","chunk_seconds":8,"overlap_seconds":2,"output_sample_rate":"original"}},{"id":4,"type":"PreviewAudio","pos":[1280,60],"size":[320,120],"flags":{},"order":3,"mode":0,"inputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","link":2},{"localized_name":"audioUI","name":"audioUI","type":"AUDIO_UI","widget":{"name":"audioUI"},"link":null}],"outputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","links":null}],"properties":{"cnr_id":"comfy-core","ver":"0.46.0","Node name for S&R":"PreviewAudio","ue_properties":{"widget_ue_connectable":{},"version":"7.8","input_ue_unconnectable":{}}},"widgets_values":[],"widgets_values_named":{}},{"id":5,"type":"SaveAudio","pos":[1640,60],"size":[320,120],"flags":{},"order":4,"mode":0,"inputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","link":3},{"localized_name":"filename_prefix","name":"filename_prefix","type":"STRING","widget":{"name":"filename_prefix"},"link":null},{"localized_name":"audioUI","name":"audioUI","type":"AUDIO_UI","widget":{"name":"audioUI"},"link":null}],"outputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","links":null}],"properties":{"cnr_id":"comfy-core","ver":"0.46.0","Node name for S&R":"SaveAudio","ue_properties":{"widget_ue_connectable":{},"version":"7.8","input_ue_unconnectable":{}}},"widgets_values":["inworld/isolated_voice"],"widgets_values_named":{"filename_prefix":"inworld/isolated_voice"}},{"id":6,"type":"PreviewAudio","pos":[1280,220],"size":[320,120],"flags":{},"order":5,"mode":0,"inputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","link":4},{"localized_name":"audioUI","name":"audioUI","type":"AUDIO_UI","widget":{"name":"audioUI"},"link":null}],"outputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","links":null}],"properties":{"cnr_id":"comfy-core","ver":"0.46.0","Node name for S&R":"PreviewAudio","ue_properties":{"widget_ue_connectable":{},"version":"7.8","input_ue_unconnectable":{}}},"widgets_values":[],"widgets_values_named":{}},{"id":7,"type":"SaveAudio","pos":[1640,220],"size":[320,120],"flags":{},"order":6,"mode":0,"inputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","link":5},{"localized_name":"filename_prefix","name":"filename_prefix","type":"STRING","widget":{"name":"filename_prefix"},"link":null},{"localized_name":"audioUI","name":"audioUI","type":"AUDIO_UI","widget":{"name":"audioUI"},"link":null}],"outputs":[{"localized_name":"audio","name":"audio","type":"AUDIO","links":null}],"properties":{"cnr_id":"comfy-core","ver":"0.46.0","Node name for S&R":"SaveAudio","ue_properties":{"widget_ue_connectable":{},"version":"7.8","input_ue_unconnectable":{}}},"widgets_values":["inworld/background_noise"],"widgets_values_named":{"filename_prefix":"inworld/background_noise"}}],"links":[[1,2,0,3,0,"AUDIO"],[2,3,0,4,0,"AUDIO"],[3,3,0,5,0,"AUDIO"],[4,3,1,6,0,"AUDIO"],[5,3,1,7,0,"AUDIO"]],"groups":[],"config":{},"extra":{"ds":{"scale":1.2839025177495011,"offset":[-323.64060195401237,302.7813445547945]},"ue_links":[],"links_added_by_ue":[],"anomalous_hashes":{}},"version":0.4}
+{
+  "id": "81a2f1c8-2f99-4bfb-a1a6-b158115e0413",
+  "revision": 0,
+  "last_node_id": 7,
+  "last_link_id": 6,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "MarkdownNote",
+      "pos": [
+        40,
+        60
+      ],
+      "size": [
+        420,
+        480
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "# Inworld Voice Isolator v1\n\nOpen-license (Apache-2.0) 48 kHz voice isolation for noisy recordings and speech pipelines.\n\n**Models**:\n- **offline (high quality)**: 64M parameters, processes in 8 s chunks with 2 s overlap for pristine quality.\n- **streaming (realtime)**: 58M parameters, causal with 20 ms look-ahead.\n\n**Model Loading**:\n- **auto**: Automatically downloads weights on first run.\n- **manual / offline**: Place denoiser.safetensors or denoiser_realtime.safetensors into ComfyUI/models/inworld/ and select from model_name dropdown.\n\n**Outputs**:\n- **voice**: Isolated foreground speaker.\n- **background**: Extracted background noise / music / room reverb (input minus voice).\n\n**Options**:\n- **channel_handling**: Mono downmix, dual-channel stereo (isolates L & R separately), or centered stereo.\n- **output_sample_rate**: Keep original or 48 kHz native."
+      ],
+      "widgets_values_named": {
+        "text": "# Inworld Voice Isolator v1\n\nOpen-license (Apache-2.0) 48 kHz voice isolation for noisy recordings and speech pipelines.\n\n**Models**:\n- **offline (high quality)**: 64M parameters, processes in 8 s chunks with 2 s overlap for pristine quality.\n- **streaming (realtime)**: 58M parameters, causal with 20 ms look-ahead.\n\n**Model Loading**:\n- **auto**: Automatically downloads weights on first run.\n- **manual / offline**: Place denoiser.safetensors or denoiser_realtime.safetensors into ComfyUI/models/inworld/ and select from model_name dropdown.\n\n**Outputs**:\n- **voice**: Isolated foreground speaker.\n- **background**: Extracted background noise / music / room reverb (input minus voice).\n\n**Options**:\n- **channel_handling**: Mono downmix, dual-channel stereo (isolates L & R separately), or centered stereo.\n- **output_sample_rate**: Keep original or 48 kHz native."
+      },
+      "color": "#232c3d",
+      "bgcolor": "#151b26"
+    },
+    {
+      "id": 2,
+      "type": "LoadAudio",
+      "pos": [
+        500,
+        60
+      ],
+      "size": [
+        320,
+        160
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "COMBO",
+          "widget": {
+            "name": "audio"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "audioUI",
+          "name": "audioUI",
+          "type": "AUDIO_UI",
+          "widget": {
+            "name": "audioUI"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "choose file to upload",
+          "name": "upload",
+          "type": "AUDIOUPLOAD",
+          "widget": {
+            "name": "upload"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "AUDIO",
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "slot_index": 0,
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.46.0",
+        "Node name for S&R": "LoadAudio",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "Recording1431.ogg",
+        ""
+      ],
+      "widgets_values_named": {
+        "audio": "Recording1431.ogg",
+        "upload": ""
+      }
+    },
+    {
+      "id": 3,
+      "type": "InworldVoiceIsolator",
+      "pos": [
+        870,
+        60
+      ],
+      "size": [
+        360,
+        260
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 1
+        },
+        {
+          "localized_name": "mode",
+          "name": "mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "device",
+          "name": "device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "channel_handling",
+          "name": "channel_handling",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "channel_handling"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "chunk_seconds",
+          "name": "chunk_seconds",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "chunk_seconds"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "overlap_seconds",
+          "name": "overlap_seconds",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "overlap_seconds"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "output_sample_rate",
+          "name": "output_sample_rate",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "output_sample_rate"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "voice",
+          "name": "voice",
+          "type": "AUDIO",
+          "slot_index": 0,
+          "links": [
+            2,
+            3
+          ]
+        },
+        {
+          "localized_name": "background",
+          "name": "background",
+          "type": "AUDIO",
+          "slot_index": 1,
+          "links": [
+            4,
+            5
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-workflow-encrypt",
+        "ver": "1.0.0",
+        "Node name for S&R": "InworldVoiceIsolator",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "offline (high quality)",
+        "cuda",
+        "mono",
+        8,
+        2,
+        "original"
+      ],
+      "widgets_values_named": {
+        "mode": "offline (high quality)",
+        "device": "cuda",
+        "channel_handling": "mono",
+        "chunk_seconds": 8,
+        "overlap_seconds": 2,
+        "output_sample_rate": "original"
+      }
+    },
+    {
+      "id": 4,
+      "type": "PreviewAudio",
+      "pos": [
+        1280,
+        60
+      ],
+      "size": [
+        320,
+        120
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 2
+        },
+        {
+          "localized_name": "audioUI",
+          "name": "audioUI",
+          "type": "AUDIO_UI",
+          "widget": {
+            "name": "audioUI"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.46.0",
+        "Node name for S&R": "PreviewAudio",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 5,
+      "type": "SaveAudio",
+      "pos": [
+        1640,
+        60
+      ],
+      "size": [
+        320,
+        120
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 3
+        },
+        {
+          "localized_name": "filename_prefix",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "audioUI",
+          "name": "audioUI",
+          "type": "AUDIO_UI",
+          "widget": {
+            "name": "audioUI"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.46.0",
+        "Node name for S&R": "SaveAudio",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "inworld/isolated_voice"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "inworld/isolated_voice"
+      }
+    },
+    {
+      "id": 6,
+      "type": "PreviewAudio",
+      "pos": [
+        1280,
+        220
+      ],
+      "size": [
+        320,
+        120
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 4
+        },
+        {
+          "localized_name": "audioUI",
+          "name": "audioUI",
+          "type": "AUDIO_UI",
+          "widget": {
+            "name": "audioUI"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.46.0",
+        "Node name for S&R": "PreviewAudio",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 7,
+      "type": "SaveAudio",
+      "pos": [
+        1640,
+        220
+      ],
+      "size": [
+        320,
+        120
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 5
+        },
+        {
+          "localized_name": "filename_prefix",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "audioUI",
+          "name": "audioUI",
+          "type": "AUDIO_UI",
+          "widget": {
+            "name": "audioUI"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "audio",
+          "name": "audio",
+          "type": "AUDIO",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.46.0",
+        "Node name for S&R": "SaveAudio",
+        "ue_properties": {
+          "widget_ue_connectable": {},
+          "version": "7.8",
+          "input_ue_unconnectable": {}
+        }
+      },
+      "widgets_values": [
+        "inworld/background_noise"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "inworld/background_noise"
+      }
+    }
+  ],
+  "links": [
+    [
+      1,
+      2,
+      0,
+      3,
+      0,
+      "AUDIO"
+    ],
+    [
+      2,
+      3,
+      0,
+      4,
+      0,
+      "AUDIO"
+    ],
+    [
+      3,
+      3,
+      0,
+      5,
+      0,
+      "AUDIO"
+    ],
+    [
+      4,
+      3,
+      1,
+      6,
+      0,
+      "AUDIO"
+    ],
+    [
+      5,
+      3,
+      1,
+      7,
+      0,
+      "AUDIO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1.2839025177495011,
+      "offset": [
+        -323.64060195401237,
+        302.7813445547945
+      ]
+    },
+    "ue_links": [],
+    "links_added_by_ue": [],
+    "anomalous_hashes": {}
+  },
+  "version": 0.4
+}
