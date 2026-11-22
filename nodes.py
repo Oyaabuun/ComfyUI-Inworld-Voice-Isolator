@@ -1,6 +1,7 @@
 import json
 import math
 import os
+import sys
 import torch
 from inworld import voice_isolation
 import inworld.voice_isolation.scan as scan
@@ -19,6 +20,33 @@ os.makedirs(INWORLD_MODELS_DIR, exist_ok=True)
 folder_paths.add_model_folder_path("inworld", INWORLD_MODELS_DIR)
 
 _CACHED_ISOLATORS = {}
+
+
+class ConsoleProgressBar:
+    """Synchronizes progress between the ComfyUI web frontend and terminal console."""
+    def __init__(self, total: int):
+        self.total = max(1, total)
+        self.current = 0
+        self.comfy_pbar = comfy.utils.ProgressBar(self.total)
+        self._last_pct = -1
+
+    def update(self, steps: int = 1):
+        self.current += steps
+        if self.current > self.total:
+            self.current = self.total
+        self.comfy_pbar.update(steps)
+        pct = int((self.current / self.total) * 100)
+        if pct != self._last_pct or self.current == self.total:
+            self._last_pct = pct
+            bar_len = 30
+            filled = int(round(bar_len * self.current / self.total))
+            bar = "=" * filled + "-" * (bar_len - filled)
+            if self.current >= self.total:
+                sys.stdout.write(f"\r[Inworld Voice Isolator] [{bar}] 100% ({self.total}/{self.total} chunks)\n")
+                sys.stdout.flush()
+            else:
+                sys.stdout.write(f"\r[Inworld Voice Isolator] [{bar}] {pct}% ({self.current}/{self.total} chunks)")
+                sys.stdout.flush()
 
 
 def _resolve_model_and_mode(model_choice: str, mode_str: str):
@@ -74,7 +102,7 @@ def _isolate_mono_offline(
     target_sr: int,
     chunk_seconds: float,
     overlap_seconds: float,
-    pbar: comfy.utils.ProgressBar = None,
+    pbar: ConsoleProgressBar = None,
 ) -> torch.Tensor:
     if audio_mono.ndim == 1:
         audio_mono = audio_mono.unsqueeze(0)
@@ -148,7 +176,7 @@ def _isolate_mono_streaming(
     audio_mono: torch.Tensor,
     sample_rate: int,
     target_sr: int,
-    pbar: comfy.utils.ProgressBar = None,
+    pbar: ConsoleProgressBar = None,
 ) -> torch.Tensor:
     if audio_mono.ndim == 1:
         audio_mono = audio_mono.unsqueeze(0)
@@ -206,13 +234,13 @@ class InworldVoiceIsolator:
                 "audio": ("AUDIO",),
             },
             "optional": {
-                "model_name": (model_files, {"default": "auto (download from HF if missing)"}),
                 "mode": (["offline (high quality)", "streaming (realtime)"], {"default": "offline (high quality)"}),
                 "device": (["auto", "cuda", "cpu"], {"default": "auto"}),
                 "channel_handling": (["mono", "stereo (dual-channel)", "centered stereo"], {"default": "mono"}),
                 "chunk_seconds": ("FLOAT", {"default": 8.0, "min": 2.0, "max": 30.0, "step": 1.0, "round": 0.1}),
                 "overlap_seconds": ("FLOAT", {"default": 2.0, "min": 0.5, "max": 8.0, "step": 0.5, "round": 0.1}),
                 "output_sample_rate": (["original", "48000"], {"default": "original"}),
+                "model_name": (model_files, {"default": "auto (download from HF if missing)"}),
             },
         }
 
@@ -224,13 +252,13 @@ class InworldVoiceIsolator:
     def isolate_voice(
         self,
         audio: dict,
-        model_name: str = "auto (download from HF if missing)",
         mode: str = "offline (high quality)",
         device: str = "auto",
         channel_handling: str = "mono",
         chunk_seconds: float = 8.0,
         overlap_seconds: float = 2.0,
         output_sample_rate: str = "original",
+        model_name: str = "auto (download from HF if missing)",
     ):
         waveform = audio["waveform"]
         sample_rate = int(audio["sample_rate"])
@@ -260,7 +288,7 @@ class InworldVoiceIsolator:
             chunks_per_channel = (samples_48k + piece_samples - 1) // piece_samples + 1
 
         total_steps = batch_size * channels_to_process * chunks_per_channel
-        pbar = comfy.utils.ProgressBar(total_steps)
+        pbar = ConsoleProgressBar(total_steps)
 
         def _run_isolation(mono_tensor):
             if is_offline:

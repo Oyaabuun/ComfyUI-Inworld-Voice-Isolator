@@ -189,6 +189,16 @@
             "name": "output_sample_rate"
           },
           "link": null
+        },
+        {
+          "localized_name": "model_name",
+          "name": "model_name",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "model_name"
+          },
+          "link": null
         }
       ],
       "outputs": [
@@ -227,17 +237,19 @@
         "offline (high quality)",
         "cuda",
         "mono",
-        8,
-        2,
-        "original"
+        8.0,
+        2.0,
+        "original",
+        "auto (download from HF if missing)"
       ],
       "widgets_values_named": {
         "mode": "offline (high quality)",
         "device": "cuda",
         "channel_handling": "mono",
-        "chunk_seconds": 8,
-        "overlap_seconds": 2,
-        "output_sample_rate": "original"
+        "chunk_seconds": 8.0,
+        "overlap_seconds": 2.0,
+        "output_sample_rate": "original",
+        "model_name": "auto (download from HF if missing)"
       }
     },
     {
