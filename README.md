@@ -1,6 +1,6 @@
 # ComfyUI Inworld Voice Isolator
 
-ComfyUI custom node integration for **Inworld Voice Isolator**, providing 48 kHz studio-grade vocal separation and background extraction.
+ComfyUI custom node integration for **Inworld Voice Isolator**, providing 48 kHz studio-grade vocal separation, background noise extraction, and multi-format audio export.
 
 ---
 
@@ -9,6 +9,11 @@ ComfyUI custom node integration for **Inworld Voice Isolator**, providing 48 kHz
 - **Dual Engine Support**:
   - `offline (high quality)`: 64M parameter offline model using crossfaded chunks for maximum fidelity.
   - `streaming (realtime)`: 58M parameter causal model with low lookahead for fast processing.
+- **Multi-Format Audio Export (`Save Audio (Multi-Format)`)**:
+  - Eliminates ComfyUI's deprecated `SaveAudio` node warning.
+  - Direct export to **WAV** (uncompressed 16-bit PCM), **FLAC** (lossless compressed), or **MP3** (high-compatibility).
+  - Selectable MP3 bitrate (`320k`, `256k`, `192k`, `128k`).
+  - Interactive HTML5 audio player preview embedded in the node.
 - **Automatic or Manual Model Loading**:
   - Automatically downloads model weights from Hugging Face on first run if internet is available.
   - Supports offline / manual downloads placed into `ComfyUI/models/diffusion_models/inworld/` (or `ComfyUI/models/diffusion_models/`).
@@ -62,8 +67,9 @@ Files placed in `ComfyUI/models/diffusion_models/inworld/` will automatically ap
 
 ---
 
-## Node Parameters
+## Nodes Included
 
+### 1. Inworld Voice Isolator
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `audio` | AUDIO | *Required* | Input audio from `LoadAudio` or any audio node. |
@@ -75,9 +81,17 @@ Files placed in `ComfyUI/models/diffusion_models/inworld/` will automatically ap
 | `output_sample_rate` | Combo | `original` | Target sample rate (`original` or `48000`). |
 | `model_name` | Combo | `auto (download from HF if missing)` | Select `auto` to fetch from HF, or select any local checkpoint in `diffusion_models/`. |
 
-### Outputs
+**Outputs**:
 - `voice`: Clean isolated speech audio.
 - `background`: Extracted residual background noise, music, or atmosphere.
+
+### 2. Save Audio (Multi-Format)
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `audio` | AUDIO | *Required* | Audio track to save. |
+| `filename_prefix` | String | `inworld/isolated_voice` | Output file path and naming pattern. |
+| `format` | Combo | `wav` | Target format: `wav`, `flac`, or `mp3`. |
+| `mp3_quality` | Combo | `320k` | Bitrate for MP3: `320k`, `256k`, `192k`, `128k`. |
 
 ---
 

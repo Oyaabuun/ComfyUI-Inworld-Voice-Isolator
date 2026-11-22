@@ -3,6 +3,7 @@ import math
 import os
 import sys
 import torch
+import av
 from inworld import voice_isolation
 import inworld.voice_isolation.scan as scan
 from inworld.voice_isolation.model import window_samples
@@ -375,3 +376,91 @@ class InworldVoiceIsolator:
             {"waveform": out_voice, "sample_rate": target_sr},
             {"waveform": out_bg, "sample_rate": target_sr},
         )
+
+
+class InworldSaveAudio:
+    """Save audio in multiple popular formats (WAV, FLAC, MP3) with workflow metadata."""
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "audio": ("AUDIO",),
+            },
+            "optional": {
+                "filename_prefix": ("STRING", {"default": "inworld/isolated_voice"}),
+                "format": (["wav", "flac", "mp3"], {"default": "wav"}),
+                "mp3_quality": (["320k", "256k", "192k", "128k"], {"default": "320k"}),
+            },
+            "hidden": {
+                "prompt": "PROMPT",
+                "extra_pnginfo": "EXTRA_PNGINFO",
+            },
+        }
+
+    RETURN_TYPES = ("AUDIO",)
+    RETURN_NAMES = ("audio",)
+    OUTPUT_NODE = True
+    FUNCTION = "save_audio"
+    CATEGORY = "audio"
+
+    def save_audio(
+        self,
+        audio: dict,
+        filename_prefix: str = "inworld/isolated_voice",
+        format: str = "wav",
+        mp3_quality: str = "320k",
+        prompt=None,
+        extra_pnginfo=None,
+    ):
+        waveform = audio["waveform"]
+        sample_rate = int(audio["sample_rate"])
+
+        if waveform.ndim == 2:
+            waveform = waveform.unsqueeze(0)
+
+        full_output_folder, filename, counter, subfolder, _ = folder_paths.get_save_image_path(
+            filename_prefix, folder_paths.get_output_directory()
+        )
+        os.makedirs(full_output_folder, exist_ok=True)
+
+        metadata = {}
+        if prompt is not None:
+            metadata["prompt"] = json.dumps(prompt)
+        if extra_pnginfo is not None:
+            metadata["workflow"] = json.dumps(extra_pnginfo)
+
+        results = []
+        for batch_num, item in enumerate(waveform.cpu()):
+            filename_with_batch = filename.replace("%batch_num%", str(batch_num))
+            file = f"{filename_with_batch}_{counter:05}.{format}"
+            output_path = os.path.join(full_output_folder, file)
+            layout = "mono" if item.shape[0] == 1 else "stereo"
+
+            with av.open(output_path, mode="w", format=format) as container:
+                for k, v in metadata.items():
+                    container.metadata[k] = v
+
+                if format == "wav":
+                    stream = container.add_stream("pcm_s16le", rate=sample_rate, layout=layout)
+                    pcm = (item.clamp(-1.0, 1.0) * 32767.0).to(torch.int16)
+                    interleaved = pcm.t().contiguous().view(1, -1) if layout == "stereo" else pcm.view(1, -1)
+                    frame = av.AudioFrame.from_ndarray(interleaved.numpy(), format="s16", layout=layout)
+                elif format == "flac":
+                    stream = container.add_stream("flac", rate=sample_rate, layout=layout)
+                    frame = av.AudioFrame.from_ndarray(item.movedim(0, 1).reshape(1, -1).float().numpy(), format="flt", layout=layout)
+                elif format == "mp3":
+                    stream = container.add_stream("libmp3lame", rate=sample_rate, layout=layout)
+                    stream.bit_rate = int(mp3_quality.replace("k", "")) * 1000
+                    frame = av.AudioFrame.from_ndarray(item.movedim(0, 1).reshape(1, -1).float().numpy(), format="flt", layout=layout)
+                else:
+                    raise ValueError(f"Unsupported format: {format}")
+
+                frame.sample_rate = sample_rate
+                frame.pts = 0
+                container.mux(stream.encode(frame))
+                container.mux(stream.encode(None))
+
+            results.append({"filename": file, "subfolder": subfolder, "type": "output"})
+            counter += 1
+
+        return {"ui": {"audio": results}, "result": (audio,)}

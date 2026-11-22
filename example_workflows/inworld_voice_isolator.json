@@ -306,7 +306,7 @@
     },
     {
       "id": 5,
-      "type": "SaveAudio",
+      "type": "InworldSaveAudio",
       "pos": [
         1640,
         60
@@ -320,13 +320,11 @@
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "audio",
           "name": "audio",
           "type": "AUDIO",
           "link": 3
         },
         {
-          "localized_name": "filename_prefix",
           "name": "filename_prefix",
           "type": "STRING",
           "widget": {
@@ -335,11 +333,18 @@
           "link": null
         },
         {
-          "localized_name": "audioUI",
-          "name": "audioUI",
-          "type": "AUDIO_UI",
+          "name": "format",
+          "type": "COMBO",
           "widget": {
-            "name": "audioUI"
+            "name": "format"
+          },
+          "link": null
+        },
+        {
+          "name": "mp3_quality",
+          "type": "COMBO",
+          "widget": {
+            "name": "mp3_quality"
           },
           "link": null
         }
@@ -355,7 +360,7 @@
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.46.0",
-        "Node name for S&R": "SaveAudio",
+        "Node name for S&R": "InworldSaveAudio",
         "ue_properties": {
           "widget_ue_connectable": {},
           "version": "7.8",
@@ -363,11 +368,16 @@
         }
       },
       "widgets_values": [
-        "inworld/isolated_voice"
+        "inworld/isolated_voice",
+        "wav",
+        "320k"
       ],
       "widgets_values_named": {
-        "filename_prefix": "inworld/isolated_voice"
-      }
+        "filename_prefix": "inworld/isolated_voice",
+        "format": "wav",
+        "mp3_quality": "320k"
+      },
+      "title": "Save Isolated Voice"
     },
     {
       "id": 6,
@@ -423,7 +433,7 @@
     },
     {
       "id": 7,
-      "type": "SaveAudio",
+      "type": "InworldSaveAudio",
       "pos": [
         1640,
         220
@@ -437,13 +447,11 @@
       "mode": 0,
       "inputs": [
         {
-          "localized_name": "audio",
           "name": "audio",
           "type": "AUDIO",
           "link": 5
         },
         {
-          "localized_name": "filename_prefix",
           "name": "filename_prefix",
           "type": "STRING",
           "widget": {
@@ -452,11 +460,18 @@
           "link": null
         },
         {
-          "localized_name": "audioUI",
-          "name": "audioUI",
-          "type": "AUDIO_UI",
+          "name": "format",
+          "type": "COMBO",
           "widget": {
-            "name": "audioUI"
+            "name": "format"
+          },
+          "link": null
+        },
+        {
+          "name": "mp3_quality",
+          "type": "COMBO",
+          "widget": {
+            "name": "mp3_quality"
           },
           "link": null
         }
@@ -472,7 +487,7 @@
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.46.0",
-        "Node name for S&R": "SaveAudio",
+        "Node name for S&R": "InworldSaveAudio",
         "ue_properties": {
           "widget_ue_connectable": {},
           "version": "7.8",
@@ -480,11 +495,16 @@
         }
       },
       "widgets_values": [
-        "inworld/background_noise"
+        "inworld/background_noise",
+        "wav",
+        "320k"
       ],
       "widgets_values_named": {
-        "filename_prefix": "inworld/background_noise"
-      }
+        "filename_prefix": "inworld/background_noise",
+        "format": "wav",
+        "mp3_quality": "320k"
+      },
+      "title": "Save Background Noise"
     }
   ],
   "links": [
